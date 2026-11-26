@@ -13,7 +13,8 @@
 # 2026-11-26 | n/a | Runs as the Entra-domain user from aidp_cluster_control_config.json
 #   (the original aidp_job_config.json service account is not recognized by AIDP: 404
 #   NotAuthorizedOrNotFound). Key file path checked before signing; signing user printed.
-#   Tag: n/a (2026-11-26c).
+#   Tag: n/a (2026-11-26c). The key_file path is now used exactly as given
+#   (no "/" added); a missing key lists the folder contents. Tag: n/a (2026-11-26d).
 # 2026-11-26 | n/a | Instance OCID, region and workspace key read from the config file's
 #   job_details block (lake_ocid, region, workspace_key) when the parameters are blank.
 #   New WORKSPACE_KEY parameter. Workspace precedence: WORKSPACE_KEY, WORKSPACE_NAME,
@@ -98,11 +99,14 @@ def read_config(path):
 
 def build_signer(oci_config):
     key_file = oci_config.get("key_file", "")                                            # n/a (2026-11-26c)
-    if not oci_config.get("key_content"):                                                # n/a (2026-11-26c)
-        if key_file.startswith("Volumes/"):                                              # n/a (2026-11-26c)
-            key_file = oci_config["key_file"] = "/" + key_file                           # n/a (2026-11-26c)
-        if not os.path.isfile(key_file):                                                 # n/a (2026-11-26c)
-            raise FileNotFoundError(f"Private key not found: {key_file} (check oci_config.key_file)")
+    if not oci_config.get("key_content") and not os.path.exists(key_file):               # n/a (2026-11-26d) path used as given
+        folder = os.path.dirname(os.path.abspath(key_file))
+        try:
+            listing = sorted(os.listdir(folder))[:20]
+        except Exception as exc:
+            listing = f"folder not readable: {exc}"
+        raise FileNotFoundError(f"Private key not found: {key_file} (resolved {os.path.abspath(key_file)}, "
+                                f"cwd {os.getcwd()}). Files in that folder: {listing}")   # n/a (2026-11-26d)
     oci.config.validate_config(oci_config)
     try:                                                                                 # n/a (2026-11-26c)
         u = oci.identity.IdentityClient(oci_config).get_user(oci_config["user"]).data
