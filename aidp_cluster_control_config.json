@@ -4,7 +4,7 @@
     "fingerprint": "15:a9:bd:cb:b9:a8:2f:7b:15:ca:9b:57:e0:bc:00:81",
     "tenancy": "ocid1.tenancy.oc1..aaaaaaaanicxsvscuj6l4dt37ed6lzrvebk24hjl27x7txunma6pytmdk5ra",
     "region": "us-phoenix-1",
-    "key_file": "Volumes/dev_plexus/default/workflow_config_files/checkpoints/test/svc.pem"
+    "key_file": "/Volumes/dev_plexus/default/workflow_config_files/svc.pem"
   },
   "job_details": {
     "region": "us-phoenix-1",

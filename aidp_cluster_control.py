@@ -15,6 +15,8 @@
 #   NotAuthorizedOrNotFound). Key file path checked before signing; signing user printed.
 #   Tag: n/a (2026-11-26c). The key_file path is now used exactly as given
 #   (no "/" added); a missing key lists the folder contents. Tag: n/a (2026-11-26d).
+#   Key file moved next to the config file; if key_file is not found as given, the same
+#   file name is looked up in the config file's folder. Tag: n/a (2026-11-26e).
 # 2026-11-26 | n/a | Instance OCID, region and workspace key read from the config file's
 #   job_details block (lake_ocid, region, workspace_key) when the parameters are blank.
 #   New WORKSPACE_KEY parameter. Workspace precedence: WORKSPACE_KEY, WORKSPACE_NAME,
@@ -99,6 +101,12 @@ def read_config(path):
 
 def build_signer(oci_config):
     key_file = oci_config.get("key_file", "")                                            # n/a (2026-11-26c)
+    if not oci_config.get("key_content") and not os.path.exists(key_file):               # n/a (2026-11-26e)
+        # Not found as given: look for the same file name next to the config file.
+        beside_config = os.path.join(os.path.dirname(CONFIG_FILE_PATH), os.path.basename(key_file))
+        if os.path.exists(beside_config):
+            print(f"Key file {key_file} not found; using {beside_config}")
+            key_file = oci_config["key_file"] = beside_config
     if not oci_config.get("key_content") and not os.path.exists(key_file):               # n/a (2026-11-26d) path used as given
         folder = os.path.dirname(os.path.abspath(key_file))
         try:
